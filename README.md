@@ -10,7 +10,7 @@ Modern websites, like Twitter and Amazon, must interact with databases to serve 
 ## How will we get there?
 - [ ] Explain the difference between synchronous and asynchronous code
 - [ ] Fetch (GET only) data and use it to update the DOM
-- [ ] Describe the HttpResponse (often labelled `res` as a parameter in code) object
+- [ ] Describe the Response (often labelled `res` as a parameter in code) object
 - [ ] Recognize Promises and their chainable methods
 
 ## Synchronous vs Asynchronous
@@ -89,6 +89,8 @@ fetch(url, options) returns a Promise. A Promise is a special type of object tha
 - catch(callback) (you'll probably use this quite a bit, it handles errors)
 - finally(callback) (you'll use this sometimes, it always runs if it's chained onto a Promise)
 
+**Important! fetch() always returns a Promise. It does NOT return the response or any other value. So if you assign fetch() to a variable or provide fetch() as an argument to console.log(), you'll get a Promise object.**
+
 ```
 fetch(url)
   .then(function(response) {
@@ -110,8 +112,6 @@ fetch(url)
   })
 ```
 
-**Important! fetch() always returns a Promise. It does NOT return the response or any other value. So if you assign fetch() to a variable or provide fetch() as an argument to console.log(), you'll get a Promise object.**
-
 ## Task One: Fetch a single GIF with comment and display it in the DOM
 Let's separate our code into meaningful functions, so it's easy to read.
 
@@ -120,7 +120,197 @@ We'll be using json-server to emulate having a backend. It allows us to perform 
 ## Task Two: Fetch all of the GIFs with comments and display all of them in the DOM
 Let's carry on coding cleanly. See how helpful our code from earlier is!! Ermehgerd!!
 
-## Food for Thought
-What actually causes fetch() to produce an error that is then handled by catch()?
+## Response object (res)
+When fetch() resolves, it resolves a Response object, which is available in the very first then() chained to fetch(). Just like other objects, it has its own properties and methods. You can see a full list here: https://developer.mozilla.org/en-US/docs/Web/API/Response
 
-What happens if the response takes ages? How could you handle that using fetch()?
+Here are some of the properties you might be most interested in:
+- Response.ok: returns true or false. True if status range is 200-299, indicating a successful response.
+- Response.status: Returns 200 if request was successful.
+- Response.statusText: Return 'OK' if the request was successful.
+
+Here is an interesting method:
+- Response.json(): Convert the string response stored in the response's Body to JSON. This is an async process!
+
+## So what is all this Promise business?!
+A Promise is a special type of object that allows us to handle asynchronous tasks, such as fetch() and setTimeout(), where their values or responses are not yet available, but are required for subsequent code. There is no reason to use Promises with fully synchronous code, since values from synchronous code are already available to work with on the next line.
+
+Some use cases for Promises:
+- Update the DOM with data from an HTTP response (using fetch() most likely)
+- Run some function after a timeout has finished
+- Run one fetch after another in order (Example: the API provides a response containing some data which is required to make the next request)
+
+Promises do not return any value other than a Promise. They have 3 possible states:
+- Pending: the callback provided to the Promise has neither resolved nor rejected.
+- Resolved: the callback provided to the Promise completed successfully.
+- Rejected: the callback provided to the Promise did not complete successfully. There was an error.
+
+When working with Promises directly, we must instantiate a new Promise object (similar to instatiating an object of a class in Ruby!!). The Promise takes a callback, which is run by the Promise. The Promise provides the callback with two arguments: a method, usually labeled resolve, which will return the "resolved" value to the next then(), and another method, usually labeled reject, which means that the callback provided to the Promise did not resolve successfully (some kind of error usually). Reject is optional.
+
+```
+let status = 'On';
+const prom = new Promise(function(resolve, reject) {
+  if (status === 'On') {
+    resolve('The light is ON');
+  } else {
+    reject('The light is OFF');
+  }
+}); // This Promise resolves successfully
+```
+
+If the callback provided to the Promise does not resolve or reject, it will be in a Pending state forever.
+```
+let status = 'On';
+const prom = new Promise(function(resolve, reject) {
+  if (status === 'On') {
+    return 'The light is ON';
+  } else {
+    return 'The light is OFF';
+  }
+}); // This Promise is Pending forever, nothing happens
+```
+
+We can chain methods onto Promises, which are only available on Promise objects (like how #say_name might only be accessible to a Dog object in Ruby). Methods available on Promises include:
+- then(callback): Once the callback provided to a Promise resolves, the first then() chained onto the Promise object is run. We can also return values from a then() to another then(). Thenables (Terry Venables! <- That one's for you Taiye) are executed in order.
+  ```
+  new Promise(function(resolve) {
+    // do some stuff
+    resolve('I have resolved');
+  })
+  .then(function(resolvedValue) {
+    console.log(resolvedValue); // logs 'I have resolved'
+    return 'I am being returned';
+  })
+  .then(function(returnedValue) {
+    console.log(returnedValue); // logs 'I am being returned'
+  });
+  ```
+- catch(callback): If the Promise is rejected or an error is thrown from a then(), the callback in catch will be run.
+  ```
+  new Promise(function(resolve, reject) {
+    // do some stuff
+    reject('I am being rejected');
+  })
+  .catch(function(error) {
+    console.error(error); // logs 'I am being rejected'
+  });
+  ```
+- finally(callback): This will run if the Promise is resolved or rejected after all of the then()'s or catch(). It is not possible to return a value from then() or catch() to finally().
+  ```
+  new Promise(function(resolve, reject) {
+    // do some stuff
+    reject('I am being rejected');
+  })
+  .catch(function(error) {
+    console.error(error); // logs 'I am being rejected'
+  })
+  .finally(function () {
+    console.log('finally, I am doing something');
+  })
+  ```
+
+Some examples:
+```
+// if we never throw an error, we can just pass resolve to our callback
+const promOne = new Promise(function(resolve) { 
+  setTimeout(function () {
+    // resolve returns the argument, which is available in the next .then()
+    resolve('I have such good resolve.');
+  }, 5000);
+  })
+  .then(function(msg) {
+    console.log(msg); // logs 'I have such good resolve.'
+  });
+
+const promTwo = new Promise(function(resolve) { 
+  setTimeout(function () {
+    resolve('i am being resolved');
+  }, 5000);
+  })
+  .then(function(msg) {
+    console.log(msg); // logs 'i am being resolved'
+    return 'i am being returned';
+  })
+  .then(function(msg) {
+    console.log(msg); // logs 'i am being returned'
+  });
+
+// if we need to throw an error, we must also pass reject
+// we can then handle that error in catch
+const promThree = new Promise(function(resolve, reject) { 
+  setTimeout(function () {
+    reject('Nobody likes me.');
+  }, 5000);
+  })
+  .catch(function(error) {
+    console.error(error); // logs 'Nobody likes me.'
+  });
+
+// We can use resolve and reject, though this example is rather pointless
+const status = 'On';
+const promFour = new Promise(function(resolve, reject) { 
+  setTimeout(function () {
+    if (status === 'On') resolve('I am resolving to the next then.');
+    else reject('I am being rejected to catch');
+  }, 5000);
+  })
+  .then(function(msg) {
+    console.log(msg); // logs 'I am resolving to the next then.'
+  })
+  .catch(function(error) {
+    console.error(error);  // never runs
+  });
+
+// We can also resolve in one then(), and throw an error in another
+// status = 'On'
+const promFive = new Promise(function(resolve, reject) { 
+  setTimeout(function () {
+    if (status === 'On') resolve('I am resolving to the next then.');
+    else reject('I am being rejected to catch');
+  }, 5000);
+  })
+  .then(function(msg) {
+    console.log(msg); // logs 'I am resolving to the next then.'
+    // this error will be handled by catch()
+    throw new Error('being bad just cuz');
+  })
+  .catch(function(error) {
+    console.error(error); // logs 'being bad just cuz'
+  });
+```
+
+All of the Promises above will have a status of resolved, including the ones that call reject in the callback. If we didn't handle the error in catch(), the Promises that called reject would have statuses of rejected.
+```
+const prom = new Promise(function (resolve, reject) {
+  setTimeout(reject, 2000, 'message');
+})
+
+// Wait a few seconds, then in the console
+console.log(prom); // Promise {<rejected>: "message"}
+```
+
+Once a Promise has been run, it cannot be reused. That Promise is now settled and a settled Promise is done for life. It cannot be reset or reused.
+
+**So how does this work with fetch?**
+fetch() returns a Promise. This means we can chain all of the methods available on a Promise onto fetch().
+
+The definition of fetch() might look something like this (this is an abstraction and will not run):
+```
+function fetch(url, options={}) {
+  return new Promise(function(resolve, reject) {
+    makeHTTPRequest(url, options, function (result) {
+      if (result.status === 'ok') {
+        resolve(result);
+      } else {
+        reject(result);
+      }
+    });
+  });
+}
+```
+
+Because fetch() returns a Promise, we can now chain on then() to handle the response, catch() to handle errors, and finally() if there's anything we want to do after all of our then()'s and/or catch() have run.
+
+## Food for Thought
+What actually causes fetch() to produce an error that is then handled by catch()? This is very Googleable!
+
+What happens if the response takes ages? How could you handle that using fetch()? This is kind of an advanced thing and not necessary to know for projects or passing code challenges. Also, why might we want to limit how long we wait for a response?
