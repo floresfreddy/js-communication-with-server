@@ -1,6 +1,8 @@
 # JavaScript: Communication With a Server (GET)
 On your machine, you should have installed node and json-server globally by now.
 
+You can see the solution branch here: https://github.com/helloRupa/js-communication-with-server
+
 ## By the end of this lesson, you should be able to:
 - Fetch data via the frontend from a server and update the DOM with the response
 
