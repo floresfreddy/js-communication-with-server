@@ -10,7 +10,7 @@ Modern websites, like Twitter and Amazon, must interact with databases to serve 
 ## How will we get there?
 - [ ] Explain the difference between synchronous and asynchronous code
 - [ ] Fetch (GET only) data and use it to update the DOM
-- [ ] Describe the Response (often labelled `res` as a parameter in code) object
+- [ ] Describe the Response object (often labelled `res` as a parameter in code)
 - [ ] Recognize Promises and their chainable methods
 
 ## Synchronous vs Asynchronous
@@ -43,13 +43,13 @@ For each of the code blocks below, what will be logged to the console and in wha
 ```
 console.log('boop');
 setTimeout(function () { console.log('in a timeout') }, 1);
-console.log('blob');
+console.log('beep');
 ```
 
 ```
 setTimeout(function () { console.log('in a timeout') }, 0);
 console.log('boop');
-console.log('blob');
+console.log('beep');
 ```
 
 The answer for the second block of code might not be what you expected. It's important to understand how JavaScript executes asynchronous code. JavaScript is a single-threaded language, which means it can only run one process at a time. It can't multitask like Java. When an asynchronous function is run, the process gets handed off to the browser. Once that process has completed, its result is put into a queue. When JavaScript has completed running its existing tasks, it looks at the queue and starts running those processes in FIFO order. 
@@ -60,7 +60,7 @@ So here's what happened with the last block of code above:
     - puts callback from setTimeout() into the callback queue after 0 milliseconds
 3. JS: I'm gonna carry on with my business and I'll check back in with you when I'm done:
     - 'boop'
-    - 'blob'
+    - 'beep'
 4. JS: Guess I better see what the browser put in my queue since I'm not doing anything:
     - 'in a timeout'
 
@@ -103,11 +103,12 @@ fetch(url)
     console.log(json);
   })
   .catch(function(error) {
-    // handle errors
+    // handle errors, optional
     console.log(error);
   })
   .finally(function() {
-    // code that should always run after a Promise is fulfilled or rejected (aka success or error)
+    // code that should always run after a Promise is fulfilled 
+    // or rejected (aka success or error), optional
     console.log('If you chain me on, I will always happen!!');
   })
 ```
@@ -173,7 +174,6 @@ We can chain methods onto Promises, which are only available on Promise objects 
 - then(callback): Once the callback provided to a Promise resolves, the first then() chained onto the Promise object is run. We can also return values from a then() to another then(). Thenables (Terry Venables! <- That one's for you Taiye) are executed in order.
   ```
   new Promise(function(resolve) {
-    // do some stuff
     resolve('I have resolved');
   })
   .then(function(resolvedValue) {
@@ -187,7 +187,6 @@ We can chain methods onto Promises, which are only available on Promise objects 
 - catch(callback): If the Promise is rejected or an error is thrown from a then(), the callback in catch will be run.
   ```
   new Promise(function(resolve, reject) {
-    // do some stuff
     reject('I am being rejected');
   })
   .catch(function(error) {
@@ -197,7 +196,6 @@ We can chain methods onto Promises, which are only available on Promise objects 
 - finally(callback): This will run if the Promise is resolved or rejected after all of the then()'s or catch(). It is not possible to return a value from then() or catch() to finally().
   ```
   new Promise(function(resolve, reject) {
-    // do some stuff
     reject('I am being rejected');
   })
   .catch(function(error) {
@@ -281,11 +279,11 @@ const promFive = new Promise(function(resolve, reject) {
 All of the Promises above will have a status of resolved, including the ones that call reject in the callback. If we didn't handle the error in catch(), the Promises that called reject would have statuses of rejected.
 ```
 const prom = new Promise(function (resolve, reject) {
-  setTimeout(reject, 2000, 'message');
+  setTimeout(reject, 2000, 'Nobody invites me to their parties');
 })
 
 // Wait a few seconds, then in the console
-console.log(prom); // Promise {<rejected>: "message"}
+console.log(prom); // Promise {<rejected>: "Nobody invites me to their parties"}
 ```
 
 Once a Promise has been run, it cannot be reused. That Promise is now settled and a settled Promise is done for life. It cannot be reset or reused.
@@ -311,6 +309,6 @@ function fetch(url, options={}) {
 Because fetch() returns a Promise, we can now chain on then() to handle the response, catch() to handle errors, and finally() if there's anything we want to do after all of our then()'s and/or catch() have run.
 
 ## Food for Thought
-What actually causes fetch() to produce an error that is then handled by catch()? This is very Googleable!
+What actually causes fetch() to produce an error that can then handled by catch()? This is very Googleable!
 
 What happens if the response takes ages? How could you handle that using fetch()? This is kind of an advanced thing and not necessary to know for projects or passing code challenges. Also, why might we want to limit how long we wait for a response?
