@@ -73,7 +73,7 @@ This means that asynchronous functions, such as setTimeout() and fetch(), have n
 ## fetch()
 fetch() is a method that allows us to communicate with servers from the frontend, and perform all of the CRUD actions on a database, provided the backend let's us do that. Like setTimeOut(), fetch() is asynchronous. It hands the HTTP request off to the browser, which then makes the request. Once a response is received from the server, it is placed in the queue. Once JS has completed running its processes, it looks at the queue and handles the response.
 
-***All of this works because of AJAX (asynchronous JS and XML). AJAX is not a programming language. It's a technique for accessing web servers from a webpage without having to refresh. To ahieve this, it uses a browser built-in XMLHttpRequest object (to request data from a web server) and JavaScript and HTML DOM (to display or use the data).***
+***All of this works because of AJAX (asynchronous JS and XML). AJAX is not a programming language. It's a technique for accessing web servers from a webpage without having to refresh. To achieve this, it uses a browser built-in XMLHttpRequest object (to request data from a web server) and JavaScript, and HTML DOM (to display or use the data).***
 
 fetch() takes two arguments:
 - the URL as a string (where does this request go?)
@@ -142,7 +142,9 @@ Some use cases for Promises:
 - Run some function after a timeout has finished
 - Run one fetch after another in order (Example: the API provides a response containing some data which is required to make the next request)
 
-Promises do not return any value other than a Promise. They have 3 possible states:
+Promises do not return any value other than a Promise. 
+
+Promises have 3 possible states:
 - Pending: the callback provided to the Promise has neither resolved nor rejected.
 - Resolved: the callback provided to the Promise completed successfully.
 - Rejected: the callback provided to the Promise did not complete successfully. There was an error.
@@ -246,7 +248,7 @@ const promThree = new Promise(function(resolve, reject) {
   });
 
 // We can use resolve and reject, though this example is rather pointless
-const status = 'On';
+let status = 'On';
 const promFour = new Promise(function(resolve, reject) { 
   setTimeout(function () {
     if (status === 'On') resolve('I am resolving to the next then.');
@@ -261,7 +263,7 @@ const promFour = new Promise(function(resolve, reject) {
   });
 
 // We can also resolve in one then(), and throw an error in another
-// status = 'On'
+status = 'On';
 const promFive = new Promise(function(resolve, reject) { 
   setTimeout(function () {
     if (status === 'On') resolve('I am resolving to the next then.');
@@ -288,10 +290,10 @@ const prom = new Promise(function (resolve, reject) {
 console.log(prom); // Promise {<rejected>: "Nobody invites me to their parties"}
 ```
 
-Once a Promise has been run, it cannot be reused. That Promise is now settled and a settled Promise is done for life. It cannot be reset or reused.
+Once a Promise has been run, it cannot be reused. That Promise is now settled and a settled Promise is done. It cannot be reset or reused.
 
 **So how does this work with fetch?**
-fetch() returns a Promise. This means we can chain all of the methods available on a Promise onto fetch().
+fetch() returns a Promise. This means we can chain all of the methods available on a Promise onto fetch(), or rather, onto the return value of fetch().
 
 The definition of fetch() might look something like this (this is an abstraction and will not run):
 ```
